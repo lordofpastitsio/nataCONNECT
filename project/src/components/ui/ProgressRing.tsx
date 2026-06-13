@@ -1,46 +1,45 @@
+import React from 'react';
+
 interface ProgressRingProps {
   progress: number;
-  size?: number;
-  strokeWidth?: number;
-  color?: string;
-  bgColor?: string;
+  size: number;
+  strokeWidth: number;
+  color: string;
   children?: React.ReactNode;
 }
 
-export function ProgressRing({
-  progress,
-  size = 80,
-  strokeWidth = 6,
-  color = '#38bdf8',
-  bgColor = 'rgba(255,255,255,0.1)',
-  children,
-}: ProgressRingProps) {
+export function ProgressRing({ progress, size, strokeWidth, color, children }: ProgressRingProps) {
   const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-  const offset = circumference - (progress / 100) * circumference;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference - (progress / 100) * circumference;
 
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={bgColor} strokeWidth={strokeWidth} />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          className="transition-all duration-700 ease-out"
-        />
-      </svg>
+    <svg width={size} height={size} className="shrink-0">
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        stroke="#334155"
+        strokeWidth={strokeWidth}
+        fill="transparent"
+      />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        fill="transparent"
+        strokeDasharray={circumference}
+        strokeDashoffset={dashOffset}
+        strokeLinecap="round"
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+      />
       {children && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          {children}
-        </div>
+        <foreignObject x={strokeWidth} y={strokeWidth} width={size - strokeWidth * 2} height={size - strokeWidth * 2}>
+          <div className="flex items-center justify-center h-full text-xs text-slate-100">{children}</div>
+        </foreignObject>
       )}
-    </div>
+    </svg>
   );
 }
