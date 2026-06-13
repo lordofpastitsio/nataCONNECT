@@ -1,6 +1,6 @@
 // Types and mock data for the NataCONNECT demo
 
-export type Pillar = 'shield' | 'autogrow' | 'practice' | 'goals' | 'account' | 'guide';
+export type Pillar = 'shield' | 'practice' | 'guide' | 'goals' | 'account';
 
 export interface Card {
   id: string;

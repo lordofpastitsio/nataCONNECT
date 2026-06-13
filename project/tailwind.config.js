@@ -6,6 +6,13 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
+      borderRadius: {
+        'liquid-sm': '0.875rem',
+        'liquid-md': '1.25rem',
+        'liquid-lg': '1.5rem',
+        'liquid-xl': '1.75rem',
+        'liquid-2xl': '2rem',
+      },
       colors: {
         glass: {
           50: 'rgba(255,255,255,0.05)',

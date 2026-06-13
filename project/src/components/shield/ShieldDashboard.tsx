@@ -10,8 +10,8 @@ function CardItem({ card, isSelected, onClick }: { card: Card; isSelected: boole
   return (
     <div
       onClick={onClick}
-      className={`relative rounded-xl p-4 cursor-pointer transition-all duration-300 overflow-hidden ${isSelected ? 'ring-2 ring-blue-500/50 scale-[1.02]' : 'hover:scale-[1.01]'}`}
-      style={{ background: `linear-gradient(135deg, ${card.color}33, ${card.color}11)`, border: `1px solid ${card.color}44` }}
+      className={`relative rounded-xl p-4 cursor-pointer transition-all duration-300 overflow-hidden ${isSelected ? 'ring-2 ring-slate-600/80 scale-[1.02]' : 'hover:scale-[1.01]'}`}
+      style={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(148,163,184,0.18)' }}
     >
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">{card.brand}</span>
@@ -43,8 +43,8 @@ function RuleItem({ rule, onToggle }: { rule: ShieldRule; onToggle: (id: string)
   };
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] transition-all group">
-      <div className="p-2 rounded-lg bg-blue-500/15 text-blue-400">
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-950/90 border border-slate-700 hover:bg-slate-900/90 transition-all group">
+      <div className="p-2 rounded-lg bg-slate-900/80 text-slate-300">
         {typeIcons[rule.ruleType]}
       </div>
       <div className="flex-1 min-w-0">
@@ -52,9 +52,9 @@ function RuleItem({ rule, onToggle }: { rule: ShieldRule; onToggle: (id: string)
       </div>
       <button
         onClick={() => onToggle(rule.id)}
-        className={`w-9 h-5 rounded-full transition-all duration-200 ${rule.isActive ? 'bg-blue-500' : 'bg-white/10'} relative`}
+        className={`w-9 h-5 rounded-full transition-all duration-200 ${rule.isActive ? 'bg-slate-700' : 'bg-slate-800/80'} relative`}
       >
-        <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all duration-200 ${rule.isActive ? 'left-[18px]' : 'left-0.5'}`} />
+        <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-slate-300/90 transition-all duration-200 ${rule.isActive ? 'left-[18px]' : 'left-0.5'}`} />
       </button>
     </div>
   );
@@ -62,16 +62,16 @@ function RuleItem({ rule, onToggle }: { rule: ShieldRule; onToggle: (id: string)
 
 function TransactionItem({ tx, onApprove }: { tx: Transaction; onApprove: (id: string) => void }) {
   const statusConfig: Record<string, { icon: React.ReactNode; badge: 'success' | 'warning' | 'danger' | 'info' | 'neutral'; label: string }> = {
-    approved: { icon: <CheckCircle size={16} className="text-emerald-400" />, badge: 'success', label: 'Approved' },
-    blocked: { icon: <XCircle size={16} className="text-red-400" />, badge: 'danger', label: 'Blocked' },
-    pending: { icon: <Clock size={16} className="text-amber-400" />, badge: 'warning', label: 'Pending' },
-    flagged: { icon: <AlertTriangle size={16} className="text-amber-400" />, badge: 'warning', label: 'Flagged' },
+    approved: { icon: <CheckCircle size={16} className="text-slate-300" />, badge: 'success', label: 'Approved' },
+    blocked: { icon: <XCircle size={16} className="text-slate-300" />, badge: 'danger', label: 'Blocked' },
+    pending: { icon: <Clock size={16} className="text-slate-300" />, badge: 'warning', label: 'Pending' },
+    flagged: { icon: <AlertTriangle size={16} className="text-slate-300" />, badge: 'warning', label: 'Flagged' },
   };
 
   const config = statusConfig[tx.status];
 
   return (
-    <div className={`p-4 rounded-xl border transition-all ${tx.status === 'blocked' ? 'bg-red-500/[0.05] border-red-500/20' : 'bg-white/[0.03] border-white/[0.06]'} hover:bg-white/[0.05]`}>
+    <div className="p-4 rounded-xl border transition-all bg-slate-950/90 border-slate-700 hover:bg-slate-900/90">
       <div className="flex items-start gap-3">
         <div className="mt-0.5">{config.icon}</div>
         <div className="flex-1 min-w-0">
@@ -88,12 +88,12 @@ function TransactionItem({ tx, onApprove }: { tx: Transaction; onApprove: (id: s
             <span>{new Date(tx.createdAt).toLocaleString('de-DE', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
           </div>
           {tx.blockReason && (
-            <p className="mt-2 text-xs text-red-300/80 bg-red-500/10 p-2 rounded-lg border border-red-500/15">
+            <p className="mt-2 text-xs text-slate-300 bg-slate-950/90 p-2 rounded-lg border border-slate-700">
               {tx.blockReason}
             </p>
           )}
           {tx.status === 'blocked' && (
-            <Button variant="ghost" size="sm" className="mt-2 text-sky-400 hover:text-sky-300" onClick={() => onApprove(tx.id)}>
+            <Button variant="ghost" size="sm" className="mt-2 text-slate-200 hover:text-white" onClick={() => onApprove(tx.id)}>
               Proceed Anyway <ChevronRight size={14} />
             </Button>
           )}
@@ -105,16 +105,16 @@ function TransactionItem({ tx, onApprove }: { tx: Transaction; onApprove: (id: s
 
 function CommunityStats() {
   const stats = [
-    { label: 'Scams Blocked', value: '2,847', icon: <Shield size={18} />, color: 'text-blue-400' },
-    { label: 'Active Users', value: '14.2K', icon: <Users size={18} />, color: 'text-emerald-400' },
-    { label: 'Reports Today', value: '23', icon: <Flag size={18} />, color: 'text-amber-400' },
-    { label: 'Money Saved', value: '€847K', icon: <DollarSign size={18} />, color: 'text-pink-400' },
+    { label: 'Scams Blocked', value: '2,847', icon: <Shield size={18} />, color: 'text-slate-300' },
+    { label: 'Active Users', value: '14.2K', icon: <Users size={18} />, color: 'text-slate-300' },
+    { label: 'Reports Today', value: '23', icon: <Flag size={18} />, color: 'text-slate-300' },
+    { label: 'Money Saved', value: '€847K', icon: <DollarSign size={18} />, color: 'text-slate-300' },
   ];
 
   return (
     <div className="grid grid-cols-2 gap-3">
       {stats.map((s) => (
-        <div key={s.label} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+        <div key={s.label} className="p-3 rounded-xl bg-slate-900/80 border border-slate-700">
           <div className={`${s.color} mb-1`}>{s.icon}</div>
           <div className="text-lg font-semibold text-white">{s.value}</div>
           <div className="text-xs text-slate-400">{s.label}</div>
@@ -164,18 +164,18 @@ export function ShieldDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gradient-shield">Shield</h1>
+          <h1 className="text-2xl font-bold text-white">Shield</h1>
           <p className="text-sm text-slate-400 mt-0.5">Protection without paranoia</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
             <div className="text-xs text-slate-400">Blocked today</div>
-            <div className="text-lg font-bold text-red-400">{blockedCount}</div>
+            <div className="text-lg font-bold text-slate-200">{blockedCount}</div>
           </div>
-          <div className="w-px h-8 bg-white/10" />
+          <div className="w-px h-8 bg-slate-700" />
           <div className="text-right">
             <div className="text-xs text-slate-400">Approved</div>
-            <div className="text-lg font-bold text-emerald-400">{approvedCount}</div>
+            <div className="text-lg font-bold text-slate-200">{approvedCount}</div>
           </div>
         </div>
       </div>
@@ -234,14 +234,14 @@ export function ShieldDashboard() {
         <h2 className="text-sm font-medium text-slate-400 mb-3">Flagged Sellers</h2>
         <div className="space-y-2">
           {mockScamReports.map(report => (
-            <div key={report.id} className="flex items-center gap-3 p-3 rounded-xl bg-red-500/[0.05] border border-red-500/15">
-              <Flag size={16} className="text-red-400 shrink-0" />
+            <div key={report.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-950/90 border border-slate-700">
+              <Flag size={16} className="text-slate-300 shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-white truncate">{report.sellerName}</p>
                 <p className="text-xs text-slate-400 truncate">{report.description}</p>
               </div>
               <div className="text-right shrink-0">
-                <div className="text-xs text-red-400 font-medium">{report.reportCount} reports</div>
+                <div className="text-xs text-slate-200 font-medium">{report.reportCount} reports</div>
                 <Badge variant={report.verified ? 'success' : 'warning'}>{report.verified ? 'Verified' : 'Unverified'}</Badge>
               </div>
             </div>
@@ -259,7 +259,7 @@ export function ShieldDashboard() {
                 <button
                   key={type}
                   onClick={() => setNewRuleType(type)}
-                  className={`p-2 rounded-lg text-xs font-medium transition-all border ${newRuleType === type ? 'bg-blue-500/20 border-blue-500/40 text-blue-300' : 'bg-white/5 border-white/10 text-slate-400 hover:bg-white/10'}`}
+                  className={`p-2 rounded-lg text-xs font-medium transition-all border ${newRuleType === type ? 'bg-slate-800/80 border-slate-600 text-slate-200' : 'bg-slate-900/80 border-slate-700 text-slate-400 hover:bg-slate-900/90'}`}
                 >
                   {type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </button>

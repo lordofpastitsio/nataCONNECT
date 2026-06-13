@@ -4,7 +4,7 @@ import { Search, Shield, TrendingUp, Trophy, Target, ArrowRight, X } from 'lucid
 interface CommandItem {
   id: string;
   label: string;
-  pillar: 'shield' | 'autogrow' | 'practice' | 'goals';
+  pillar: 'shield' | 'practice' | 'goals';
   action: string;
 }
 
@@ -13,9 +13,6 @@ const commands: CommandItem[] = [
   { id: '2', label: 'Block unverified sellers', pillar: 'shield', action: 'shield_block_unverified' },
   { id: '3', label: 'Set spending limit', pillar: 'shield', action: 'shield_spending_limit' },
   { id: '4', label: 'Report a scam', pillar: 'shield', action: 'shield_report_scam' },
-  { id: '5', label: 'Start trading with 100 EUR', pillar: 'autogrow', action: 'autogrow_start_100' },
-  { id: '6', label: 'Stop and secure all positions', pillar: 'autogrow', action: 'autogrow_stop' },
-  { id: '7', label: 'View portfolio performance', pillar: 'autogrow', action: 'autogrow_view' },
   { id: '8', label: 'Practice investing', pillar: 'practice', action: 'practice_start' },
   { id: '9', label: 'Open simulated trade', pillar: 'practice', action: 'practice_trade' },
   { id: '10', label: 'View my skill score', pillar: 'practice', action: 'practice_score' },
@@ -25,17 +22,16 @@ const commands: CommandItem[] = [
   { id: '14', label: 'Track my vacation savings', pillar: 'goals', action: 'goals_vacation' },
 ];
 
-const pillarConfig: Record<string, { icon: React.ReactNode; color: string; gradient: string }> = {
-  shield: { icon: <Shield size={14} />, color: 'text-blue-400', gradient: 'from-blue-500/20 to-blue-500/5' },
-  autogrow: { icon: <TrendingUp size={14} />, color: 'text-emerald-400', gradient: 'from-emerald-500/20 to-emerald-500/5' },
-  practice: { icon: <Trophy size={14} />, color: 'text-amber-400', gradient: 'from-amber-500/20 to-amber-500/5' },
-  goals: { icon: <Target size={14} />, color: 'text-pink-400', gradient: 'from-pink-500/20 to-pink-500/5' },
+const pillarConfig: Record<string, { icon: React.ReactNode; color: string }> = {
+  shield: { icon: <Shield size={14} />, color: 'text-slate-200' },
+  practice: { icon: <Trophy size={14} />, color: 'text-slate-200' },
+  goals: { icon: <Target size={14} />, color: 'text-slate-200' },
 };
 
 interface CommandBarProps {
   isOpen: boolean;
   onClose: () => void;
-  onNavigate: (pillar: 'shield' | 'autogrow' | 'practice' | 'goals') => void;
+  onNavigate: (pillar: 'shield' | 'practice' | 'goals') => void;
 }
 
 export function CommandBar({ isOpen, onClose, onNavigate }: CommandBarProps) {
@@ -84,8 +80,8 @@ export function CommandBar({ isOpen, onClose, onNavigate }: CommandBarProps) {
     <div className="fixed inset-0 z-50" onClick={onClose}>
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in" />
       <div className="relative max-w-lg mx-auto mt-[15vh] px-4" onClick={e => e.stopPropagation()}>
-        <div className="glass-card rounded-2xl overflow-hidden animate-scale-in">
-          <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.06]">
+        <div className="bg-slate-950/90 border border-slate-700 rounded-2xl overflow-hidden animate-scale-in">
+          <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-700">
             <Search size={18} className="text-slate-400" />
             <input
               ref={inputRef}
@@ -96,7 +92,7 @@ export function CommandBar({ isOpen, onClose, onNavigate }: CommandBarProps) {
               placeholder="What would you like to do?"
               className="flex-1 bg-transparent text-sm text-white placeholder-slate-500 outline-none"
             />
-            <button onClick={onClose} className="p-1 rounded hover:bg-white/10 transition-colors text-slate-400 hover:text-white">
+            <button onClick={onClose} className="p-1 rounded hover:bg-slate-900/80 transition-colors text-slate-400 hover:text-white">
               <X size={14} />
             </button>
           </div>
@@ -111,22 +107,22 @@ export function CommandBar({ isOpen, onClose, onNavigate }: CommandBarProps) {
                     key={cmd.id}
                     onClick={() => executeCommand(cmd)}
                     onMouseEnter={() => setSelectedIndex(i)}
-                    className={`w-full flex items-center gap-3 px-5 py-2.5 text-left transition-all ${i === selectedIndex ? 'bg-white/[0.08]' : 'hover:bg-white/[0.04]'}`}
+                    className={`w-full flex items-center gap-3 px-5 py-2.5 text-left transition-all ${i === selectedIndex ? 'bg-slate-800/90' : 'hover:bg-slate-950/90'}`}
                   >
-                    <div className={`p-1.5 rounded-lg bg-gradient-to-r ${config.gradient} ${config.color}`}>
+                    <div className="p-1.5 rounded-lg bg-slate-900/80 text-slate-200">
                       {config.icon}
                     </div>
                     <span className="flex-1 text-sm text-white">{cmd.label}</span>
-                    <ArrowRight size={14} className={`${i === selectedIndex ? 'text-slate-300' : 'text-slate-600'} transition-colors`} />
+                    <ArrowRight size={14} className={`${i === selectedIndex ? 'text-slate-300' : 'text-slate-500'} transition-colors`} />
                   </button>
                 );
               })
             )}
           </div>
-          <div className="px-5 py-3 border-t border-white/[0.06] flex items-center gap-4 text-xs text-slate-500">
-            <span><kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-400">↑↓</kbd> navigate</span>
-            <span><kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-400">↵</kbd> select</span>
-            <span><kbd className="px-1.5 py-0.5 rounded bg-white/10 text-slate-400">esc</kbd> close</span>
+          <div className="px-5 py-3 border-t border-slate-700 flex items-center gap-4 text-xs text-slate-500">
+            <span><kbd className="px-1.5 py-0.5 rounded bg-slate-950/90 text-slate-400">↑↓</kbd> navigate</span>
+            <span><kbd className="px-1.5 py-0.5 rounded bg-slate-950/90 text-slate-400">↵</kbd> select</span>
+            <span><kbd className="px-1.5 py-0.5 rounded bg-slate-950/90 text-slate-400">esc</kbd> close</span>
           </div>
         </div>
       </div>

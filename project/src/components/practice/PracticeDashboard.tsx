@@ -28,8 +28,8 @@ function AchievementItem({ achievement }: { achievement: { title: string; descri
   };
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/[0.05] border border-amber-500/15">
-      <div className="p-2 rounded-lg bg-amber-500/15 text-amber-400">
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-950/90 border border-slate-700">
+      <div className="p-2 rounded-lg bg-slate-900/80 text-slate-300">
         {typeIcons[achievement.achievementType] || <Award size={16} />}
       </div>
       <div className="flex-1">
@@ -47,9 +47,9 @@ function PracticeTradeItem({ trade }: { trade: PracticeTrade }) {
   const isProfitable = trade.pnl !== undefined && trade.pnl > 0;
 
   return (
-    <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05] transition-all">
+    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-700 hover:bg-slate-900/90 transition-all">
       <div className="flex items-center gap-3">
-        <div className={`p-1.5 rounded-lg ${trade.side === 'buy' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400'}`}>
+        <div className={`p-1.5 rounded-lg ${trade.side === 'buy' ? 'bg-slate-900/80 text-slate-200' : 'bg-slate-900/80 text-slate-200'}`}>
           {trade.side === 'buy' ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
         </div>
         <div className="flex-1">
@@ -62,7 +62,7 @@ function PracticeTradeItem({ trade }: { trade: PracticeTrade }) {
             <span>{trade.quantity} shares @ €{trade.entryPrice.toFixed(2)}</span>
             {trade.exitPrice && <span>→ €{trade.exitPrice.toFixed(2)}</span>}
             {trade.pnl !== undefined && (
-              <span className={isProfitable ? 'text-emerald-400' : 'text-red-400'}>
+              <span className="text-slate-200">
                 {isProfitable ? '+' : ''}€{trade.pnl.toFixed(2)}
               </span>
             )}
@@ -70,7 +70,7 @@ function PracticeTradeItem({ trade }: { trade: PracticeTrade }) {
         </div>
       </div>
       {trade.aiFeedback && (
-        <div className="mt-2 text-xs text-amber-300/80 bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/15">
+        <div className="mt-2 text-xs text-slate-300 bg-slate-950/90 p-2.5 rounded-lg border border-slate-700">
           <Brain size={10} className="inline mr-1" />{trade.aiFeedback}
         </div>
       )}
@@ -185,21 +185,19 @@ export function PracticeDashboard() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gradient-practice">Practice</h1>
+          <h1 className="text-2xl font-bold text-white">Practice</h1>
           <p className="text-sm text-slate-400 mt-0.5">Learning without loss</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-slate-400">Account</label>
-            <select value={currentSessionId} onChange={e => setCurrentSessionId(e.target.value)} className="glass-input rounded-xl px-3 py-2 text-sm bg-transparent">
-              {sessions.map(s => (
-                <option key={s.id} value={s.id}>{`Acct ${s.id.slice(-4)} — €${s.balance.toLocaleString('de-DE', {minimumFractionDigits:2})}`}</option>
-              ))}
-            </select>
-            <Button variant="ghost" size="sm" onClick={resetSession}>New Account</Button>
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="text-xs text-slate-400">Account</label>
+          <select value={currentSessionId} onChange={e => setCurrentSessionId(e.target.value)} className="glass-input rounded-xl px-3 py-2 text-sm bg-transparent">
+            {sessions.map(s => (
+              <option key={s.id} value={s.id}>{`Acct ${s.id.slice(-4)} — €${s.balance.toLocaleString('de-DE', {minimumFractionDigits:2})}`}</option>
+            ))}
+          </select>
+          <Button variant="ghost" size="sm" onClick={resetSession}>New Account</Button>
           <Button variant="practice" size="md" onClick={() => setShowTradeModal(true)}>
             <TrendingUp size={16} /> New Trade
           </Button>
@@ -208,38 +206,38 @@ export function PracticeDashboard() {
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <GlassCard className="p-4 flex items-center gap-4">
+        <GlassCard className="p-4 flex items-center gap-4" gradient>
           <SkillScoreRing score={session.skillScore} />
           <div>
-            <div className="text-xs text-slate-400">Skill Score</div>
-            <div className="text-sm text-amber-400 font-medium">{session.skillScore >= 70 ? 'Advanced' : session.skillScore >= 40 ? 'Intermediate' : 'Beginner'}</div>
+            <div className="text-xs text-slate-300">Skill Score</div>
+            <div className="text-sm text-white font-medium">{session.skillScore >= 70 ? 'Advanced' : session.skillScore >= 40 ? 'Intermediate' : 'Beginner'}</div>
           </div>
         </GlassCard>
 
-        <GlassCard className="p-4">
-          <div className="text-xs text-slate-400 mb-1">Virtual Balance</div>
+        <GlassCard className="p-4" gradient>
+          <div className="text-xs text-slate-300 mb-1">Virtual Balance</div>
           <div className="text-xl font-bold text-white">€{session.balance.toLocaleString('de-DE', { minimumFractionDigits: 2 })}</div>
-          <div className={`text-xs ${totalPnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+          <div className="text-xs text-slate-200">
             {totalPnl >= 0 ? '+' : ''}€{totalPnl.toFixed(2)}
           </div>
         </GlassCard>
 
-        <GlassCard className="p-4">
-          <div className="text-xs text-slate-400 mb-1">Total Trades</div>
+        <GlassCard className="p-4" gradient>
+          <div className="text-xs text-slate-300 mb-1">Total Trades</div>
           <div className="text-xl font-bold text-white">{session.totalTrades}</div>
-          <div className="text-xs text-slate-500">{openTrades.length} open</div>
+          <div className="text-xs text-slate-400">{openTrades.length} open</div>
         </GlassCard>
 
-        <GlassCard className="p-4">
-          <div className="text-xs text-slate-400 mb-1">Win Rate</div>
+        <GlassCard className="p-4" gradient>
+          <div className="text-xs text-slate-300 mb-1">Win Rate</div>
           <div className="text-xl font-bold text-white">{winRate}%</div>
-          <div className="text-xs text-slate-500">{session.winningTrades}/{session.totalTrades} wins</div>
+          <div className="text-xs text-slate-400">{session.winningTrades}/{session.totalTrades} wins</div>
         </GlassCard>
 
-        <GlassCard className="p-4">
-          <div className="text-xs text-slate-400 mb-1">Achievements</div>
-          <div className="text-xl font-bold text-amber-400">{mockAchievements.length}</div>
-          <div className="text-xs text-slate-500">earned</div>
+        <GlassCard className="p-4" gradient>
+          <div className="text-xs text-slate-300 mb-1">Achievements</div>
+          <div className="text-xl font-bold text-white">{mockAchievements.length}</div>
+          <div className="text-xs text-slate-400">earned</div>
         </GlassCard>
       </div>
 
@@ -251,7 +249,7 @@ export function PracticeDashboard() {
               <h2 className="text-sm font-medium text-slate-400 mb-3">Open Positions</h2>
               <div className="space-y-2">
                 {openTrades.map(trade => (
-                  <div key={trade.id} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                  <div key={trade.id} className="p-3 rounded-xl bg-slate-950/90 border border-slate-700">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Badge variant={trade.side === 'buy' ? 'success' : 'danger'}>{trade.side.toUpperCase()}</Badge>
@@ -302,7 +300,7 @@ export function PracticeDashboard() {
                 <button
                   key={m.symbol}
                   onClick={() => { setSelectedSymbol(m.symbol); setShowTradeModal(true); }}
-                  className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-white/[0.05] transition-all text-left"
+                  className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-slate-950/90 transition-all text-left"
                 >
                   <div>
                     <div className="text-sm font-medium text-white">{m.symbol}</div>
@@ -310,7 +308,7 @@ export function PracticeDashboard() {
                   </div>
                   <div className="text-right">
                     <div className="text-sm text-white">€{m.price.toFixed(2)}</div>
-                    <div className={`text-xs ${m.change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <div className="text-xs text-slate-200">
                       {m.change >= 0 ? '+' : ''}{m.changePercent.toFixed(2)}%
                     </div>
                   </div>
@@ -318,20 +316,6 @@ export function PracticeDashboard() {
               ))}
             </div>
           </div>
-
-          {/* Transition to Auto-Grow */}
-          <GlassCard className="p-4">
-            <div className="flex items-center gap-3 mb-2">
-              <Star size={18} className="text-amber-400" />
-              <h3 className="text-sm font-medium text-white">Ready for real trading?</h3>
-            </div>
-            <p className="text-xs text-slate-400 mb-3">
-              Your skill score of {session.skillScore} shows you're {session.skillScore >= 70 ? 'ready' : 'building confidence'} for live trading with Auto-Grow.
-            </p>
-            <Button variant="practice" size="sm" className="w-full">
-              Move to Auto-Grow <ArrowRight size={14} />
-            </Button>
-          </GlassCard>
         </div>
       </div>
 
@@ -358,13 +342,13 @@ export function PracticeDashboard() {
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setTradeSide('buy')}
-                className={`p-2.5 rounded-lg text-sm font-medium transition-all border ${tradeSide === 'buy' ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300' : 'bg-white/5 border-white/10 text-slate-400'}`}
+                className={`p-2.5 rounded-lg text-sm font-medium transition-all border ${tradeSide === 'buy' ? 'bg-slate-900/80 border-slate-700 text-slate-200' : 'bg-slate-900/80 border-slate-700 text-slate-300'}`}
               >
                 Buy
               </button>
               <button
                 onClick={() => setTradeSide('sell')}
-                className={`p-2.5 rounded-lg text-sm font-medium transition-all border ${tradeSide === 'sell' ? 'bg-red-500/20 border-red-500/40 text-red-300' : 'bg-white/5 border-white/10 text-slate-400'}`}
+                className={`p-2.5 rounded-lg text-sm font-medium transition-all border ${tradeSide === 'sell' ? 'bg-slate-900/80 border-slate-700 text-slate-200' : 'bg-slate-900/80 border-slate-700 text-slate-300'}`}
               >
                 Sell
               </button>
@@ -382,7 +366,7 @@ export function PracticeDashboard() {
             />
           </div>
           {selectedSymbol && (
-            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+            <div className="p-3 rounded-xl bg-slate-950/90 border border-slate-700">
               <div className="text-xs text-slate-400">Estimated Cost</div>
               <div className="text-lg font-bold text-white">
                 €{(parseFloat(tradeQuantity) * (mockMarketData.find(m => m.symbol === selectedSymbol)?.price || 0)).toFixed(2)}

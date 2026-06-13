@@ -52,7 +52,7 @@ export function GuideDashboard() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gradient-practice">Guide</h1>
+          <h1 className="text-2xl font-bold text-white">Guide</h1>
           <p className="text-sm text-slate-400 mt-0.5">Tell the assistant what you're thinking and get structured suggestions</p>
         </div>
         <div className="flex items-center gap-2">
@@ -62,8 +62,8 @@ export function GuideDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <GlassCard className="lg:col-span-2 p-4">
-          <label className="text-xs text-slate-400 block mb-2">Describe what you're thinking (tickers, sectors, timeframe, goals)</label>
+        <GlassCard className="lg:col-span-2 p-4" gradient>
+          <label className="text-xs text-slate-300 block mb-2">Describe what you're thinking (tickers, sectors, timeframe, goals)</label>
           <textarea
             value={input}
             onChange={e => setInput(e.target.value)}
@@ -74,21 +74,21 @@ export function GuideDashboard() {
         </GlassCard>
 
         <div className="space-y-3">
-          <GlassCard className="p-4">
-            <div className="text-xs text-slate-400 mb-2">Quick Tips</div>
-            <ul className="text-sm text-slate-300 space-y-2">
+          <GlassCard className="p-4" gradient>
+            <div className="text-xs text-slate-300 mb-2">Quick Tips</div>
+            <ul className="text-sm text-slate-200 space-y-2">
               <li>- Define timeframe and max loss before entering.</li>
               <li>- Use position sizing: 1-3% for speculative, 5-10% for conviction.</li>
               <li>- Prefer ETFs for broad exposure to a theme.</li>
             </ul>
           </GlassCard>
 
-          <GlassCard className="p-4">
-            <div className="text-xs text-slate-400 mb-2">Suggestions</div>
+          <GlassCard className="p-4" gradient>
+            <div className="text-xs text-slate-300 mb-2">Suggestions</div>
             <div className="space-y-2">
-              {results.length === 0 && <div className="text-sm text-slate-500">No suggestions yet. Type your idea and press Suggest.</div>}
+              {results.length === 0 && <div className="text-sm text-slate-400">No suggestions yet. Type your idea and press Suggest.</div>}
               {results.map((r, i) => (
-                <div key={i} className="p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                <div key={i} className="p-2 rounded-lg bg-slate-900/80 border border-slate-700">
                   <div className="text-sm font-semibold text-white">{r.title}</div>
                   <div className="text-xs text-slate-400 mt-1">{r.detail}</div>
                 </div>

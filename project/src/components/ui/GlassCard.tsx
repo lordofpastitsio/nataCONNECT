@@ -6,15 +6,27 @@ interface GlassCardProps {
   glow?: 'blue' | 'green' | 'amber' | 'pink' | 'none';
   onClick?: () => void;
   hover?: boolean;
+  variant?: 'default' | 'sm' | 'md' | 'lg' | 'xl';
+  gradient?: boolean;
 }
 
-export function GlassCard({ children, className = '', glow = 'none', onClick, hover = false }: GlassCardProps) {
-  const glowClass = glow !== 'none' ? `glow-${glow}` : '';
-  const hoverClass = hover ? 'hover:border-white/20 hover:bg-white/[0.07] hover:scale-[1.01] transition-all duration-300 cursor-pointer' : '';
+export function GlassCard({ 
+  children, 
+  className = '', 
+  glow = 'none', 
+  onClick, 
+  hover = false,
+  variant = 'default',
+  gradient = false
+}: GlassCardProps) {
+  const glowClass = '';
+  const gradientClass = gradient ? 'bg-gradient-to-br from-slate-900/60 via-slate-950/80 to-slate-950/95 border-slate-600/30 shadow-lg' : 'bg-slate-950/90 border border-slate-700 shadow-sm';
+  const variantClass = gradientClass;
+  const hoverClass = hover ? 'hover:border-slate-600 hover:bg-slate-900/95 cursor-pointer transition-all' : '';
 
   return (
     <div
-      className={`glass-card rounded-2xl p-5 ${glowClass} ${hoverClass} ${className}`}
+      className={`${variantClass} p-5 ${hoverClass} ${className}`}
       onClick={onClick}
     >
       {children}
