@@ -52,18 +52,13 @@ function App() {
   const activePillarConfig = pillars.find(p => p.key === activePillar);
 
   return (
-    <div className="h-screen flex flex-col bg-nata-bg overflow-hidden">
-      {/* Background Effects */}
+    <div className="h-screen flex flex-col bg-nata-bg overflow-hidden bg-cover bg-center" style={{ backgroundImage: 'url(/bck.png)', backgroundAttachment: 'fixed' }}>
+      {/* Background Overlay */}
+      <div className="absolute inset-0 bg-black/40 z-0" />
       {/* Top Bar */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-950/95 backdrop-saturate-100">
+      <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-slate-950/50 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center">
-            <Sparkles size={16} className="text-white" />
-          </div>
-          <div>
-            <h1 className="text-sm font-semibold text-white tracking-wide">NataCONNECT</h1>
-            <p className="text-[10px] text-slate-400 -mt-0.5">Finance, finally effortless</p>
-          </div>
+          <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-lg" />
         </div>
 
         {/* Command Trigger */}
@@ -90,7 +85,7 @@ function App() {
       </header>
 
       {/* Main Content */}
-      <main className={`flex-1 overflow-y-auto px-6 py-6 relative z-10 transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+      <main className={`flex-1 overflow-y-auto px-6 py-6 relative z-10 transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'} bg-black/30`}>
         <div className="max-w-6xl mx-auto">
           {renderPillar()}
         </div>

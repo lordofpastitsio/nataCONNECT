@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, AlertTriangle, CheckCircle, XCircle, Plus, ChevronRight, Flag, Users, Eye, Clock, Ban, DollarSign } from 'lucide-react';
+import { Shield, AlertTriangle, CheckCircle, XCircle, Plus, ChevronRight, Flag, Eye, Clock, Ban, DollarSign } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
@@ -7,11 +7,17 @@ import { mockCards, mockShieldRules, mockTransactions, mockScamReports } from '.
 import type { Card, ShieldRule, Transaction } from '../../stores/appStore';
 
 function CardItem({ card, isSelected, onClick }: { card: Card; isSelected: boolean; onClick: () => void }) {
+  const gradients: Record<string, string> = {
+    '1': 'from-blue-600/40 to-cyan-600/40',
+    '2': 'from-purple-600/40 to-pink-600/40',
+    '3': 'from-emerald-600/40 to-teal-600/40',
+  };
+  
   return (
     <div
       onClick={onClick}
-      className={`relative rounded-xl p-4 cursor-pointer transition-all duration-300 overflow-hidden ${isSelected ? 'ring-2 ring-slate-600/80 scale-[1.02]' : 'hover:scale-[1.01]'}`}
-      style={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(148,163,184,0.18)' }}
+      className={`relative rounded-xl p-4 cursor-pointer transition-all duration-300 overflow-hidden bg-gradient-to-br ${gradients[card.id] || 'from-slate-800/40 to-slate-700/40'} ${isSelected ? 'ring-2 ring-slate-600/80 scale-[1.02]' : 'hover:scale-[1.01]'}`}
+      style={{ border: '1px solid rgba(148,163,184,0.18)' }}
     >
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">{card.brand}</span>
@@ -103,27 +109,6 @@ function TransactionItem({ tx, onApprove }: { tx: Transaction; onApprove: (id: s
   );
 }
 
-function CommunityStats() {
-  const stats = [
-    { label: 'Scams Blocked', value: '2,847', icon: <Shield size={18} />, color: 'text-slate-300' },
-    { label: 'Active Users', value: '14.2K', icon: <Users size={18} />, color: 'text-slate-300' },
-    { label: 'Reports Today', value: '23', icon: <Flag size={18} />, color: 'text-slate-300' },
-    { label: 'Money Saved', value: '€847K', icon: <DollarSign size={18} />, color: 'text-slate-300' },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      {stats.map((s) => (
-        <div key={s.label} className="p-3 rounded-xl bg-slate-900/80 border border-slate-700">
-          <div className={`${s.color} mb-1`}>{s.icon}</div>
-          <div className="text-lg font-semibold text-white">{s.value}</div>
-          <div className="text-xs text-slate-400">{s.label}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 export function ShieldDashboard() {
   const [selectedCard, setSelectedCard] = useState<string>('1');
   const [rules, setRules] = useState(mockShieldRules);
@@ -169,13 +154,13 @@ export function ShieldDashboard() {
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
-            <div className="text-xs text-slate-400">Blocked today</div>
-            <div className="text-lg font-bold text-slate-200">{blockedCount}</div>
+            <div className="text-xs text-red-400">Blocked today</div>
+            <div className="text-lg font-bold text-red-300">{blockedCount}</div>
           </div>
           <div className="w-px h-8 bg-slate-700" />
           <div className="text-right">
-            <div className="text-xs text-slate-400">Approved</div>
-            <div className="text-lg font-bold text-slate-200">{approvedCount}</div>
+            <div className="text-xs text-green-400">Approved</div>
+            <div className="text-lg font-bold text-green-300">{approvedCount}</div>
           </div>
         </div>
       </div>
@@ -190,9 +175,9 @@ export function ShieldDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         {/* Rules */}
-        <div className="lg:col-span-2">
+        <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-medium text-slate-400">Active Rules</h2>
             <Button variant="shield" size="sm" onClick={() => setShowAddRule(true)}>
@@ -210,12 +195,6 @@ export function ShieldDashboard() {
               </div>
             )}
           </div>
-        </div>
-
-        {/* Community */}
-        <div>
-          <h2 className="text-sm font-medium text-slate-400 mb-3">Community Network</h2>
-          <CommunityStats />
         </div>
       </div>
 

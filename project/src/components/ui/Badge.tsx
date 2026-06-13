@@ -5,10 +5,10 @@ interface BadgeProps {
 }
 
 const variantStyles: Record<string, string> = {
-  success: 'bg-slate-950/90 text-slate-300 border-slate-700',
-  warning: 'bg-slate-950/90 text-slate-300 border-slate-700',
-  danger: 'bg-slate-950/90 text-slate-300 border-slate-700',
-  info: 'bg-slate-950/90 text-slate-300 border-slate-700',
+  success: 'bg-green-950/60 text-green-300 border-green-700',
+  warning: 'bg-amber-950/60 text-amber-300 border-amber-700',
+  danger: 'bg-red-950/60 text-red-300 border-red-700',
+  info: 'bg-blue-950/60 text-blue-300 border-blue-700',
   neutral: 'bg-slate-950/90 text-slate-300 border-slate-700',
 };
 
