@@ -149,9 +149,9 @@ export const mockTransactions: Transaction[] = [
 ];
 
 export const mockScamReports: ScamReport[] = [
-  { id: '1', sellerName: 'SuperDealz-Shop.xyz', sellerUrl: 'https://superdealz-shop.xyz', description: 'Fake electronics store. Products never shipped.', reportType: 'fraud', verified: true, reportCount: 47, createdAt: '2026-06-10T08:00:00Z' },
-  { id: '2', sellerName: 'FakeApple-Store.com', sellerUrl: 'https://fakeapple-store.com', description: 'Phishing site mimicking Apple Store. Steals payment info.', reportType: 'phishing', verified: true, reportCount: 128, createdAt: '2026-06-08T14:00:00Z' },
-  { id: '3', sellerName: 'CheapLuxury-Bags.net', description: 'Counterfeit goods sold as authentic.', reportType: 'fake_product', verified: true, reportCount: 23, createdAt: '2026-06-05T12:00:00Z' },
+  { id: '1', sellerName: 'SuperDealz-Shop.xyz', sellerUrl: 'https://superdealz-shop.xyz', description: 'Fake electronics store. Products never shipped.', reportType: 'fraud', verified: false, reportCount: 47, createdAt: '2026-06-10T08:00:00Z' },
+  { id: '2', sellerName: 'FakeApple-Store.com', sellerUrl: 'https://fakeapple-store.com', description: 'Phishing site mimicking Apple Store. Steals payment info.', reportType: 'phishing', verified: false, reportCount: 128, createdAt: '2026-06-08T14:00:00Z' },
+  { id: '3', sellerName: 'CheapLuxury-Bags.net', description: 'Counterfeit goods sold as authentic.', reportType: 'fake_product', verified: false, reportCount: 23, createdAt: '2026-06-05T12:00:00Z' },
 ];
 
 export const mockPortfolio: Portfolio = {

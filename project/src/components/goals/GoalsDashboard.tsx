@@ -35,11 +35,16 @@ const categoryColors: Record<string, string> = {
   other: '#94a3b8',
 };
 
-function GoalCard({ goal, onClick }: { goal: Goal; onClick: () => void }) {
+function GoalCard({ goal, onClick, extraMonthly, totalRemaining }: { goal: Goal; onClick: () => void; extraMonthly: number; totalRemaining: number }) {
   const progress = (goal.currentAmount / goal.targetAmount) * 100;
   const remaining = goal.targetAmount - goal.currentAmount;
   const daysLeft = goal.deadline ? Math.max(0, Math.ceil((new Date(goal.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : null;
-  const monthlyNeeded = daysLeft && daysLeft > 0 ? remaining / (daysLeft / 30) : null;
+  const monthlyNeeded = daysLeft && daysLeft > 0 ? remaining / (daysLeft / 30) : 0;
+  // allocate extra monthly across goals proportionally to remaining amounts
+  const allocatedExtra = totalRemaining > 0 ? (extraMonthly * (remaining / totalRemaining)) : (extraMonthly > 0 ? extraMonthly : 0);
+  const newMonthly = monthlyNeeded + allocatedExtra;
+  const monthsToGoal = newMonthly > 0 ? (remaining / newMonthly) : null;
+  const projectedDeadline = monthsToGoal !== null ? new Date(Date.now() + monthsToGoal * 30 * 24 * 60 * 60 * 1000) : null;
 
   return (
     <div
@@ -92,6 +97,21 @@ function GoalCard({ goal, onClick }: { goal: Goal; onClick: () => void }) {
           {monthlyNeeded !== null && monthlyNeeded > 0 && (
             <div className="text-xs text-slate-500 mt-1">
               €{monthlyNeeded.toFixed(0)}/month needed
+            </div>
+          )}
+          {extraMonthly > 0 && (
+            <div className="text-xs text-slate-400 mt-1">
+              <span className="text-slate-300">With </span>
+              <span className="font-medium">€{Math.round(allocatedExtra)}</span>
+              <span className="text-slate-300"> extra/month → </span>
+              {monthsToGoal !== null ? (
+                <span className="font-medium">in {Math.max(1, Math.round(monthsToGoal))} months</span>
+              ) : (
+                <span className="text-slate-400">no projection</span>
+              )}
+              {projectedDeadline && (
+                <span className="text-slate-400"> &middot; by {projectedDeadline.toLocaleDateString('de-DE')}</span>
+              )}
             </div>
           )}
         </div>
@@ -155,6 +175,9 @@ export function GoalsDashboard() {
   const [investmentAllocation, setInvestmentAllocation] = useState(15);
   const [emergencyAllocation, setEmergencyAllocation] = useState(5);
   const [billsBuffer, setBillsBuffer] = useState(600);
+  const [extraMonthly, setExtraMonthly] = useState(50);
+
+  const totalRemaining = goals.reduce((sum, g) => sum + Math.max(0, g.targetAmount - g.currentAmount), 0);
 
   const addGoal = () => {
     const amount = parseFloat(newGoalAmount);
@@ -312,12 +335,30 @@ export function GoalsDashboard() {
         {/* Goals */}
         <div className="lg:col-span-2">
           <h2 className="text-sm font-medium text-slate-400 mb-3">Your Goals</h2>
+          <div className="mb-3 flex items-center gap-3">
+            <label className="text-xs text-slate-400">What if I saved</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min={0}
+                max={500}
+                step={10}
+                value={extraMonthly}
+                onChange={e => setExtraMonthly(Number(e.target.value))}
+                className="w-56"
+              />
+              <div className="text-sm font-medium text-white">€{extraMonthly}/month</div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {goals.map(goal => (
               <GoalCard
                 key={goal.id}
                 goal={goal}
                 onClick={() => setSelectedGoal(goal)}
+                extraMonthly={extraMonthly}
+                totalRemaining={totalRemaining}
               />
             ))}
           </div>

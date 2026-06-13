@@ -2,9 +2,36 @@ import { useState } from 'react';
 import { Shield, AlertTriangle, CheckCircle, XCircle, Plus, ChevronRight, Flag, Eye, Clock, Ban, DollarSign } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
+import { GlassCard } from '../ui/GlassCard';
 import { Modal } from '../ui/Modal';
 import { mockCards, mockShieldRules, mockTransactions, mockScamReports } from '../../stores/appStore';
 import type { Card, ShieldRule, Transaction } from '../../stores/appStore';
+
+function safeHostname(input?: string) {
+  if (!input) return '';
+  try {
+    const url = input.startsWith('http') ? new URL(input) : new URL('https://' + input);
+    return url.hostname.replace(/^www\./, '').toLowerCase();
+  } catch (e) {
+    return input.replace(/^www\./, '').toLowerCase();
+  }
+}
+
+function computeSimpleSimilarity(a: string, b: string) {
+  const sa = a.replace(/[^a-z0-9]/gi, '').toLowerCase();
+  const sb = b.replace(/[^a-z0-9]/gi, '').toLowerCase();
+  if (!sa || !sb) return 0;
+  const setA = new Set(sa.split(''));
+  const common = Array.from(new Set(sb.split(''))).filter(ch => setA.has(ch)).length;
+  const score = Math.round((common / Math.max(sa.length, sb.length)) * 100);
+  return Math.min(100, Math.max(0, score));
+}
+
+function extractReportsFromReason(reason?: string) {
+  if (!reason) return 0;
+  const m = reason.match(/(\d+)\s+community\s+reports/i) || reason.match(/reported\s+(\d+)/i);
+  return m ? parseInt(m[1], 10) : 0;
+}
 
 function CardItem({ card, isSelected, onClick }: { card: Card; isSelected: boolean; onClick: () => void }) {
   const gradients: Record<string, string> = {
@@ -30,11 +57,6 @@ function CardItem({ card, isSelected, onClick }: { card: Card; isSelected: boole
         <span className="text-sm text-white/90 font-medium">{card.name}</span>
         <span className="text-sm font-semibold text-white">{card.balance.toLocaleString('de-DE', { style: 'currency', currency: card.currency })}</span>
       </div>
-      {isSelected && (
-        <div className="absolute top-2 right-2">
-          <CheckCircle size={18} className="text-blue-400" />
-        </div>
-      )}
     </div>
   );
 }
@@ -76,6 +98,16 @@ function TransactionItem({ tx, onApprove }: { tx: Transaction; onApprove: (id: s
 
   const config = statusConfig[tx.status];
 
+  // Scam fingerprint details
+  const _report = mockScamReports.find(r => (
+    r.sellerName === tx.sellerName || (r.sellerUrl && tx.sellerUrl && safeHostname(r.sellerUrl) === safeHostname(tx.sellerUrl))
+  ));
+  const _reportCount = _report ? _report.reportCount : (extractReportsFromReason(tx.blockReason) || (tx.isScamReport ? 1 : 0));
+  const _firstSeenDays = _report && _report.createdAt ? Math.ceil((Date.now() - new Date(_report.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : undefined;
+  const _a = safeHostname(tx.sellerUrl || tx.sellerName);
+  const _b = safeHostname(_report?.sellerUrl || _report?.sellerName);
+  const _matchPercent = _b ? computeSimpleSimilarity(_a, _b) : computeSimpleSimilarity(_a, tx.sellerName || '');
+
   return (
     <div className="p-4 rounded-xl border transition-all bg-slate-950/90 border-slate-700 hover:bg-slate-900/90">
       <div className="flex items-start gap-3">
@@ -98,6 +130,16 @@ function TransactionItem({ tx, onApprove }: { tx: Transaction; onApprove: (id: s
               {tx.blockReason}
             </p>
           )}
+
+          {(tx.status === 'blocked' || tx.isScamReport) && (
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-slate-400">Fake domain:</span>
+              <Badge variant={_matchPercent > 70 ? 'danger' : _matchPercent > 40 ? 'warning' : 'neutral'}>{_matchPercent}% match</Badge>
+              <Badge variant={_reportCount > 10 ? 'danger' : _reportCount > 0 ? 'warning' : 'neutral'}>Reported {_reportCount}×</Badge>
+              <Badge variant="info">{_firstSeenDays !== undefined ? `First seen: ${_firstSeenDays} days ago` : 'First seen: unknown'}</Badge>
+            </div>
+          )}
+
           {tx.status === 'blocked' && (
             <Button variant="ghost" size="sm" className="mt-2 text-slate-200 hover:text-white" onClick={() => onApprove(tx.id)}>
               Proceed Anyway <ChevronRight size={14} />
@@ -227,6 +269,63 @@ export function ShieldDashboard() {
           ))}
         </div>
       </div>
+
+      <GlassCard className="p-4 mt-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="rounded-full bg-slate-900/80 p-3">
+            <Shield size={18} className="text-slate-300" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-white">NataID — Your Financial Passport</h2>
+            <p className="text-xs text-slate-400">A cryptographic identity generated only on your Pi.</p>
+          </div>
+        </div>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          No email. No username. No account with anyone. Your Pi creates a unique key on first boot, and that identity stays local to your device.
+        </p>
+        <div className="mt-3 p-3 rounded-xl bg-slate-900/80 border border-slate-700 text-slate-400 text-sm">
+          When you contribute scam reports to the community, you are not just “User #4821”. You are a verified node with a reputation score.
+          The more accurate reports you submit, the higher your node trust score, and the more weight your reports carry.
+        </div>
+      </GlassCard>
+
+      <GlassCard className="p-4 mt-4">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="rounded-full bg-slate-900/80 p-3">
+            <Shield size={18} className="text-slate-300" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-white">NataMirror — Your Financial Digital Twin</h2>
+            <p className="text-xs text-slate-400">Built from 30 days of local behavior, it watches you so you can stay one step ahead.</p>
+          </div>
+        </div>
+        <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
+          <p>
+            Your Pi learns every transaction, every block, and every goal hit or miss. The model stays on your device and is never stored in the cloud.
+          </p>
+          <p>
+            It predicts what you are likely to do next: overspending trends, impulse purchases, and goal slippage.
+          </p>
+        </div>
+        <div className="mt-3 grid gap-2">
+          <div className="rounded-xl bg-slate-900/80 border border-slate-700 p-3 text-slate-200">
+            <p className="text-xs text-slate-400">Prediction</p>
+            <p className="text-sm font-medium">Based on your pattern, you will overspend on food this week by €47.</p>
+          </div>
+          <div className="rounded-xl bg-slate-900/80 border border-slate-700 p-3 text-slate-200">
+            <p className="text-xs text-slate-400">Insight</p>
+            <p className="text-sm font-medium">You typically impulse-spend on Fridays after 9pm.</p>
+          </div>
+          <div className="rounded-xl bg-slate-900/80 border border-slate-700 p-3 text-slate-200">
+            <p className="text-xs text-slate-400">Warning</p>
+            <p className="text-sm font-medium">At your current rate, you'll miss your Summer Vacation goal by 23 days.</p>
+          </div>
+        </div>
+        <div className="mt-3 p-3 rounded-xl bg-slate-900/80 border border-slate-700 text-slate-400 text-sm">
+          When you are about to make a purchase your twin thinks you'll regret, it will challenge you with a real question.
+          “You've made this exact purchase 3 times before. You returned it twice. Still want to proceed?”
+        </div>
+      </GlassCard>
 
       {/* Add Rule Modal */}
       <Modal isOpen={showAddRule} onClose={() => setShowAddRule(false)} title="Add Shield Rule">
