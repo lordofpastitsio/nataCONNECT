@@ -44,8 +44,10 @@ function AchievementItem({ achievement }: { achievement: { title: string; descri
   );
 }
 
-function PracticeTradeItem({ trade }: { trade: PracticeTrade }) {
+function PracticeTradeItem({ trade, currency, EUR_TO_USD }: { trade: PracticeTrade; currency: 'EUR' | 'USD'; EUR_TO_USD: number }) {
   const isProfitable = trade.pnl !== undefined && trade.pnl > 0;
+  const currencySymbol = currency === 'EUR' ? '€' : '$';
+  const conversionRate = currency === 'USD' ? EUR_TO_USD : 1;
 
   return (
     <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-700 hover:bg-slate-900/90 transition-all">
@@ -60,11 +62,11 @@ function PracticeTradeItem({ trade }: { trade: PracticeTrade }) {
             <Badge variant={trade.status === 'open' ? 'info' : 'neutral'}>{trade.status}</Badge>
           </div>
           <div className="flex items-center gap-3 mt-0.5 text-xs text-slate-400">
-            <span>{trade.quantity} shares @ €{trade.entryPrice.toFixed(2)}</span>
-            {trade.exitPrice && <span>→ €{trade.exitPrice.toFixed(2)}</span>}
+            <span>{trade.quantity} shares @ {currencySymbol}{(trade.entryPrice * conversionRate).toFixed(2)}</span>
+            {trade.exitPrice && <span>→ {currencySymbol}{(trade.exitPrice * conversionRate).toFixed(2)}</span>}
             {trade.pnl !== undefined && (
               <span className="text-slate-200">
-                {isProfitable ? '+' : ''}€{trade.pnl.toFixed(2)}
+                {isProfitable ? '+' : ''}{currencySymbol}{(trade.pnl * conversionRate).toFixed(2)}
               </span>
             )}
           </div>
@@ -90,6 +92,14 @@ export function PracticeDashboard() {
   const [marketData, setMarketData] = useState<any[]>(mockMarketData);
   const [loadingMarket, setLoadingMarket] = useState(false);
   const [live, setLive] = useState(true);
+  const [currency, setCurrency] = useState<'EUR' | 'USD'>('EUR');
+
+  const EUR_TO_USD = 1.10; // Conversion rate
+  const formatCurrency = (value: number) => {
+    const symbol = currency === 'EUR' ? '€' : '$';
+    const convertedValue = currency === 'USD' ? value * EUR_TO_USD : value;
+    return `${symbol}${convertedValue.toFixed(2)}`;
+  };
 
   const session = sessions.find(s => s.id === currentSessionId) || sessions[0] || mockPracticeSession;
   const totalPnl = session.balance - session.initialBalance;
@@ -272,10 +282,15 @@ export function PracticeDashboard() {
           <p className="text-sm text-slate-400 mt-0.5">Learning without loss</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <label className="text-xs text-slate-400">Currency</label>
+          <select value={currency} onChange={e => setCurrency(e.target.value as 'EUR' | 'USD')} className="glass-input rounded-xl px-3 py-2 text-sm bg-transparent">
+            <option value="EUR">EUR (€)</option>
+            <option value="USD">USD ($)</option>
+          </select>
           <label className="text-xs text-slate-400">Account</label>
           <select value={currentSessionId} onChange={e => setCurrentSessionId(e.target.value)} className="glass-input rounded-xl px-3 py-2 text-sm bg-transparent">
             {sessions.map(s => (
-              <option key={s.id} value={s.id}>{`Acct ${s.id.slice(-4)} — €${s.balance.toLocaleString('en-GB', {minimumFractionDigits:2})}`}</option>
+              <option key={s.id} value={s.id}>{`Acct ${s.id.slice(-4)} — ${formatCurrency(s.balance)}`}</option>
             ))}
           </select>
           <Button variant="ghost" size="sm" onClick={resetSession}>New Account</Button>
@@ -297,9 +312,9 @@ export function PracticeDashboard() {
 
         <GlassCard className="p-4" gradient>
           <div className="text-xs text-slate-300 mb-1">Virtual Balance</div>
-          <div className="text-xl font-bold text-white">€{session.balance.toLocaleString('en-GB', { minimumFractionDigits: 2 })}</div>
+          <div className="text-xl font-bold text-white">{formatCurrency(session.balance)}</div>
           <div className="text-xs text-slate-200">
-            {totalPnl >= 0 ? '+' : ''}€{totalPnl.toFixed(2)}
+            {totalPnl >= 0 ? '+' : ''}{formatCurrency(totalPnl)}
           </div>
         </GlassCard>
 
@@ -335,7 +350,7 @@ export function PracticeDashboard() {
                       <div className="flex items-center gap-3">
                         <Badge variant={trade.side === 'buy' ? 'success' : 'danger'}>{trade.side.toUpperCase()}</Badge>
                         <span className="text-sm font-semibold text-white">{trade.symbol}</span>
-                        <span className="text-xs text-slate-400">{trade.quantity} @ €{trade.entryPrice.toFixed(2)}</span>
+                      <span className="text-xs text-slate-400">{trade.quantity} @ {currency === 'EUR' ? '€' : '$'}{(trade.entryPrice * (currency === 'USD' ? EUR_TO_USD : 1)).toFixed(2)}</span>
                       </div>
                       <Button variant="danger" size="sm" onClick={() => closeTrade(trade.id)}>
                         Close Position
@@ -351,7 +366,7 @@ export function PracticeDashboard() {
             <h2 className="text-sm font-medium text-slate-400 mb-3">Trade History</h2>
             <div className="space-y-2">
               {trades.filter(t => t.status === 'closed').slice(0, 8).map(trade => (
-                <PracticeTradeItem key={trade.id} trade={trade} />
+                <PracticeTradeItem key={trade.id} trade={trade} currency={currency} EUR_TO_USD={EUR_TO_USD} />
               ))}
               {trades.filter(t => t.status === 'closed').length === 0 && (
                 <div className="text-center py-8 text-slate-500">
@@ -400,7 +415,7 @@ export function PracticeDashboard() {
                       <div className="text-sm font-medium text-white">{m.symbol} <span className="text-xs text-slate-400 ml-2">{m.name}</span></div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-white">€{(m.current || 0).toFixed(2)}</div>
+                      <div className="text-sm font-bold text-white">{currency === 'EUR' ? '€' : '$'}{(m.current * (currency === 'USD' ? EUR_TO_USD : 1) || 0).toFixed(2)}</div>
                       <div className={`text-xs font-medium ${m.changePercent >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         {m.changePercent >= 0 ? <TrendingUp size={12} className="inline-block mr-1" /> : <TrendingDown size={12} className="inline-block mr-1" />}
                         {m.changePercent >= 0 ? '+' : ''}{(m.changePercent || 0).toFixed(2)}%
@@ -408,7 +423,7 @@ export function PracticeDashboard() {
                     </div>
                   </div>
                   <div className="mt-2 text-xs text-slate-400">
-                    H: €{(m.high || 0).toFixed(2)}  L: €{(m.low || 0).toFixed(2)}
+                    H: {currency === 'EUR' ? '€' : '$'}{(m.high * (currency === 'USD' ? EUR_TO_USD : 1) || 0).toFixed(2)}  L: {currency === 'EUR' ? '€' : '$'}{(m.low * (currency === 'USD' ? EUR_TO_USD : 1) || 0).toFixed(2)}
                   </div>
                 </button>
               ))}
@@ -430,7 +445,7 @@ export function PracticeDashboard() {
               <option value="" className="bg-gray-900">Select symbol...</option>
               {marketData.map(m => (
                 <option key={m.symbol} value={m.symbol} className="bg-gray-900">
-                  {m.symbol} — €{(m.current || 0).toFixed(2)}
+                  {m.symbol} — {currency === 'EUR' ? '€' : '$'}{(m.current * (currency === 'USD' ? EUR_TO_USD : 1) || 0).toFixed(2)}
                 </option>
               ))}
             </select>
@@ -467,9 +482,9 @@ export function PracticeDashboard() {
             <div className="p-3 rounded-xl bg-slate-950/90 border border-slate-700">
               <div className="text-xs text-slate-400">Estimated Cost</div>
               <div className="text-lg font-bold text-white">
-                €{(parseFloat(tradeQuantity) * (marketData.find((m: any) => m.symbol === selectedSymbol)?.current || 0)).toFixed(2)}
+                {formatCurrency(parseFloat(tradeQuantity) * (marketData.find((m: any) => m.symbol === selectedSymbol)?.current || 0))}
               </div>
-              <div className="text-xs text-slate-500">Available: €{session.balance.toLocaleString('de-DE', { minimumFractionDigits: 2 })}</div>
+              <div className="text-xs text-slate-500">Available: {formatCurrency(session.balance)}</div>
             </div>
           )}
           <div className="flex gap-3 justify-end">

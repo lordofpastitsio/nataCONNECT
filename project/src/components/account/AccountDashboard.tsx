@@ -368,24 +368,24 @@ export function AccountDashboard({ currentMember, emergencyPasscode, onSetEmerge
                 <Shield size={16} className="text-blue-300" />
                 <span className="text-xs text-slate-300">Shield</span>
               </div>
-              <div className="text-lg font-bold text-white">4 Rules</div>
-              <div className="text-xs text-slate-400">Live protection status</div>
+              <div className="text-lg font-bold text-white">0 Rules</div>
+              <div className="text-xs text-slate-400">New account</div>
             </GlassCard>
             <GlassCard className="p-4" hover gradient>
               <div className="flex items-center gap-2 mb-2">
                 <Trophy size={16} className="text-amber-300" />
                 <span className="text-xs text-slate-300">Practice</span>
               </div>
-              <div className="text-lg font-bold text-white">Score: 72</div>
-              <div className="text-xs text-slate-400">4 achievements</div>
+              <div className="text-lg font-bold text-white">Score: 0</div>
+              <div className="text-xs text-slate-400">0 achievements</div>
             </GlassCard>
             <GlassCard className="p-4" hover gradient>
               <div className="flex items-center gap-2 mb-2">
                 <Target size={16} className="text-emerald-300" />
                 <span className="text-xs text-slate-300">Goals</span>
               </div>
-              <div className="text-lg font-bold text-white">4 Goals</div>
-              <div className="text-xs text-slate-400">€8,927 total saved</div>
+              <div className="text-lg font-bold text-white">0 Goals</div>
+              <div className="text-xs text-slate-400">€0 total saved</div>
             </GlassCard>
           </div>
         </>
