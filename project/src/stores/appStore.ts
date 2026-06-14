@@ -187,17 +187,17 @@ export const mockTrades: Trade[] = [];
 
 export const mockPracticeSession: PracticeSession = {
   id: '0',
-  balance: 0,
-  initialBalance: 0,
+  balance: 10000,
+  initialBalance: 10000,
   skillScore: 0,
   totalTrades: 0,
   winningTrades: 0,
-  isActive: false,
+  isActive: true,
 };
 
 export const mockPracticeTrades: PracticeTrade[] = [];
 
-export const mockPracticeSessions: PracticeSession[] = [];
+export const mockPracticeSessions: PracticeSession[] = [mockPracticeSession];
 
 export const mockAchievements: Achievement[] = []; 
 
@@ -207,4 +207,13 @@ export const mockCategoryLimits: CategoryLimit[] = [];
 
 export const mockPortfolioHistory: { time: string; value: number }[] = []; 
 
-export const mockMarketData: { symbol: string; name: string; price: number; change: number; changePercent: number }[] = []; 
+export const mockMarketData: { symbol: string; name: string; current: number; high: number; low: number; change: number; changePercent: number }[] = [
+  { symbol: 'AAPL', name: 'Apple Inc.', current: 175.32, high: 176.50, low: 170.10, change: 1.25, changePercent: 0.72 },
+  { symbol: 'MSFT', name: 'Microsoft Corp.', current: 335.10, high: 340.00, low: 330.00, change: -0.85, changePercent: -0.25 },
+  { symbol: 'GOOGL', name: 'Alphabet Inc.', current: 132.45, high: 135.00, low: 130.00, change: 2.10, changePercent: 1.61 },
+  { symbol: 'TSLA', name: 'Tesla, Inc.', current: 244.80, high: 250.00, low: 240.00, change: -3.50, changePercent: -1.41 },
+  { symbol: 'NVDA', name: 'NVIDIA Corp.', current: 420.00, high: 425.00, low: 410.00, change: 5.00, changePercent: 1.20 },
+  { symbol: 'AMZN', name: 'Amazon.com, Inc.', current: 135.60, high: 138.00, low: 133.00, change: 0.60, changePercent: 0.44 },
+  { symbol: 'META', name: 'Meta Platforms, Inc.', current: 298.25, high: 305.00, low: 295.00, change: -1.75, changePercent: -0.58 },
+  { symbol: 'BTC', name: 'Bitcoin', current: 56000, high: 56500, low: 55000, change: 1200, changePercent: 2.19 },
+]; 
