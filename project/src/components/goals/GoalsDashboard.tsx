@@ -1,12 +1,13 @@
-import { useState } from 'react';
-import { Target, Home, Plane, ShieldCheck, Laptop, Plus, ShoppingCart, Utensils, Car, Heart, GraduationCap, Lock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Target, Home, Plane, ShieldCheck, Laptop, Plus, ShoppingCart, Utensils, Car, Heart, GraduationCap, Lock, Gift } from 'lucide-react';
 import { GlassCard } from '../ui/GlassCard';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { Modal } from '../ui/Modal';
 import { ProgressRing } from '../ui/ProgressRing';
-import { mockGoals, mockCategoryLimits } from '../../stores/appStore';
-import type { Goal, CategoryLimit } from '../../stores/appStore';
+import { mockGoals, mockCategoryLimits, mockFamilyGoals } from '../../stores/appStore';
+import type { FamilyGoal, FamilyMember, Goal, CategoryLimit } from '../../stores/appStore';
+import { piAPI } from '../../api/pi';
 
 const categoryIcons: Record<string, React.ReactNode> = {
   rent: <Home size={16} />,
@@ -35,16 +36,11 @@ const categoryColors: Record<string, string> = {
   other: '#94a3b8',
 };
 
-function GoalCard({ goal, onClick, extraMonthly, totalRemaining }: { goal: Goal; onClick: () => void; extraMonthly: number; totalRemaining: number }) {
+function GoalCard({ goal, onClick }: { goal: Goal; onClick: () => void }) {
   const progress = (goal.currentAmount / goal.targetAmount) * 100;
   const remaining = goal.targetAmount - goal.currentAmount;
   const daysLeft = goal.deadline ? Math.max(0, Math.ceil((new Date(goal.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : null;
   const monthlyNeeded = daysLeft && daysLeft > 0 ? remaining / (daysLeft / 30) : 0;
-  // allocate extra monthly across goals proportionally to remaining amounts
-  const allocatedExtra = totalRemaining > 0 ? (extraMonthly * (remaining / totalRemaining)) : (extraMonthly > 0 ? extraMonthly : 0);
-  const newMonthly = monthlyNeeded + allocatedExtra;
-  const monthsToGoal = newMonthly > 0 ? (remaining / newMonthly) : null;
-  const projectedDeadline = monthsToGoal !== null ? new Date(Date.now() + monthsToGoal * 30 * 24 * 60 * 60 * 1000) : null;
 
   return (
     <div
@@ -69,8 +65,8 @@ function GoalCard({ goal, onClick, extraMonthly, totalRemaining }: { goal: Goal;
             )}
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-slate-400 mb-2">
-            <span>€{goal.currentAmount.toLocaleString('de-DE')} / €{goal.targetAmount.toLocaleString('de-DE')}</span>
+            <div className="flex items-center gap-3 text-xs text-slate-400 mb-2">
+            <span>€{goal.currentAmount.toLocaleString('en-GB')} / €{goal.targetAmount.toLocaleString('en-GB')}</span>
             <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium`} style={{ background: `${goal.color}20`, color: goal.color }}>
               {categoryIcons[goal.category] || <Target size={10} className="inline mr-1" />}
               {goal.category.charAt(0).toUpperCase() + goal.category.slice(1)}
@@ -97,21 +93,6 @@ function GoalCard({ goal, onClick, extraMonthly, totalRemaining }: { goal: Goal;
           {monthlyNeeded !== null && monthlyNeeded > 0 && (
             <div className="text-xs text-slate-500 mt-1">
               €{monthlyNeeded.toFixed(0)}/month needed
-            </div>
-          )}
-          {extraMonthly > 0 && (
-            <div className="text-xs text-slate-400 mt-1">
-              <span className="text-slate-300">With </span>
-              <span className="font-medium">€{Math.round(allocatedExtra)}</span>
-              <span className="text-slate-300"> extra/month → </span>
-              {monthsToGoal !== null ? (
-                <span className="font-medium">in {Math.max(1, Math.round(monthsToGoal))} months</span>
-              ) : (
-                <span className="text-slate-400">no projection</span>
-              )}
-              {projectedDeadline && (
-                <span className="text-slate-400"> &middot; by {projectedDeadline.toLocaleDateString('de-DE')}</span>
-              )}
             </div>
           )}
         </div>
@@ -158,8 +139,23 @@ function CategoryLimitCard({ limit }: { limit: CategoryLimit }) {
   );
 }
 
-export function GoalsDashboard() {
+const familyGoalIcons: Record<string, React.ReactNode> = {
+  Home: <Home size={16} />,
+  Plane: <Plane size={16} />,
+  ShieldCheck: <ShieldCheck size={16} />,
+  Laptop: <Laptop size={16} />,
+  ShoppingCart: <ShoppingCart size={16} />,
+  Utensils: <Utensils size={16} />,
+  Car: <Car size={16} />,
+  Heart: <Heart size={16} />,
+  GraduationCap: <GraduationCap size={16} />,
+  Gift: <Gift size={16} />,
+  Target: <Target size={16} />,
+};
+
+export function GoalsDashboard({ currentMember }: { currentMember?: FamilyMember | null }) {
   const [goals, setGoals] = useState<Goal[]>(mockGoals);
+  const [familyGoals, setFamilyGoals] = useState<FamilyGoal[]>(mockFamilyGoals);
   const [categoryLimits] = useState<CategoryLimit[]>(mockCategoryLimits);
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [showAddLimit, setShowAddLimit] = useState(false);
@@ -168,15 +164,13 @@ export function GoalsDashboard() {
   const [newGoalAmount, setNewGoalAmount] = useState('');
   const [newGoalCategory, setNewGoalCategory] = useState('other');
   const [newGoalDeadline, setNewGoalDeadline] = useState('');
-  const [newGoalProtected, setNewGoalProtected] = useState(false);
+  const [newGoalScope, setNewGoalScope] = useState<'personal' | 'family'>('personal');
   const [newLimitCategory, setNewLimitCategory] = useState('entertainment');
   const [newLimitAmount, setNewLimitAmount] = useState('');
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
   const [investmentAllocation, setInvestmentAllocation] = useState(15);
   const [emergencyAllocation, setEmergencyAllocation] = useState(5);
   const [billsBuffer, setBillsBuffer] = useState(600);
-  const [extraMonthly, setExtraMonthly] = useState(50);
-
   const totalRemaining = goals.reduce((sum, g) => sum + Math.max(0, g.targetAmount - g.currentAmount), 0);
 
   const addGoal = () => {
@@ -189,16 +183,36 @@ export function GoalsDashboard() {
       currentAmount: 0,
       category: newGoalCategory,
       deadline: newGoalDeadline || undefined,
-      isShieldProtected: newGoalProtected,
+      isShieldProtected: false,
       icon: 'Target',
       color: categoryColors[newGoalCategory] || '#94a3b8',
     };
-    setGoals(prev => [...prev, goal]);
+    if (newGoalScope === 'family') {
+      // only admins can create family goals
+      if (currentMember && currentMember.role === 'admin') {
+        const familyGoal: FamilyGoal = {
+          id: String(Date.now()),
+          name: newGoalName,
+          targetAmount: amount,
+          currentAmount: 0,
+          managedBy: currentMember.name,
+          contributions: [],
+          icon: 'Target',
+          color: categoryColors[newGoalCategory] || '#94a3b8',
+        };
+        setFamilyGoals(prev => [...prev, familyGoal]);
+      } else {
+        // non-admins creating family goals not allowed — fallback to personal
+        setGoals(prev => [...prev, goal]);
+      }
+    } else {
+      setGoals(prev => [...prev, goal]);
+    }
     setShowAddGoal(false);
     setNewGoalName('');
     setNewGoalAmount('');
     setNewGoalDeadline('');
-    setNewGoalProtected(false);
+    setNewGoalScope('personal');
   };
 
   const contributeToGoal = (goalId: string, amount: number) => {
@@ -211,6 +225,27 @@ export function GoalsDashboard() {
   const totalTargetAmount = goals.reduce((sum, g) => sum + g.targetAmount, 0);
   const totalSaved = goals.reduce((sum, g) => sum + g.currentAmount, 0);
   const protectedAmount = goals.filter(g => g.isShieldProtected).reduce((sum, g) => sum + g.targetAmount - g.currentAmount, 0);
+
+  useEffect(() => {
+    if (!currentMember) return;
+    piAPI.getGoals(currentMember.id)
+      .then((data: any[]) => {
+        if (!Array.isArray(data)) return;
+
+        const family = data.filter(item => item?.managedBy !== undefined);
+        const personal = data.filter(item => item?.managedBy === undefined);
+
+        if (family.length > 0) {
+          setFamilyGoals(family as FamilyGoal[]);
+        }
+        if (personal.length > 0) {
+          setGoals(personal as Goal[]);
+        }
+      })
+      .catch(() => {
+        // keep mockFamilyGoals on error
+      });
+  }, [currentMember]);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -230,12 +265,14 @@ export function GoalsDashboard() {
         </div>
       </div>
 
+      {/* Family goals removed from dashboard — managed via New Goal modal by admins */}
+
       {/* Overview Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <GlassCard className="p-4" gradient>
           <div className="text-xs text-slate-300 mb-1">Total Saved</div>
-          <div className="text-xl font-bold text-white">€{totalSaved.toLocaleString('de-DE')}</div>
-          <div className="text-xs text-slate-400">of €{totalTargetAmount.toLocaleString('de-DE')}</div>
+          <div className="text-xl font-bold text-white">€{totalSaved.toLocaleString('en-GB')}</div>
+          <div className="text-xs text-slate-400">of €{totalTargetAmount.toLocaleString('en-GB')}</div>
         </GlassCard>
         <GlassCard className="p-4" gradient>
           <div className="text-xs text-slate-300 mb-1">Active Goals</div>
@@ -244,7 +281,7 @@ export function GoalsDashboard() {
         </GlassCard>
         <GlassCard className="p-4" gradient>
           <div className="text-xs text-slate-300 mb-1">Shield Protected</div>
-          <div className="text-xl font-bold text-white">€{protectedAmount.toLocaleString('de-DE')}</div>
+          <div className="text-xl font-bold text-white">€{protectedAmount.toLocaleString('en-GB')}</div>
           <div className="text-xs text-slate-400">auto-protected from spending</div>
         </GlassCard>
         <GlassCard className="p-4" gradient>
@@ -253,112 +290,17 @@ export function GoalsDashboard() {
         </GlassCard>
       </div>
 
-      <GlassCard className="p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-lg font-semibold text-white">Pay Yourself First</h2>
-            <p className="text-sm text-slate-400 mt-1">Automatically shield money on payday before it reaches your spending account.</p>
-          </div>
-          <Button
-            variant={autoSaveEnabled ? 'goals' : 'secondary'}
-            size="sm"
-            onClick={() => setAutoSaveEnabled(prev => !prev)}
-          >
-            {autoSaveEnabled ? 'Enabled' : 'Disabled'}
-          </Button>
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="rounded-2xl bg-slate-950/90 p-4 border border-slate-700">
-            <div className="text-xs text-slate-400 mb-2">Investments</div>
-            <div className="text-2xl font-bold text-slate-200">{investmentAllocation}%</div>
-            <div className="text-xs text-slate-500 mt-2">of each paycheck is moved to investments before spending.</div>
-          </div>
-          <div className="rounded-2xl bg-slate-950/90 p-4 border border-slate-700">
-            <div className="text-xs text-slate-400 mb-2">Emergency Fund</div>
-            <div className="text-2xl font-bold text-slate-200">{emergencyAllocation}%</div>
-            <div className="text-xs text-slate-500 mt-2">is added to your emergency savings automatically.</div>
-          </div>
-          <div className="rounded-2xl bg-slate-950/90 p-4 border border-slate-700">
-            <div className="text-xs text-slate-400 mb-2">Bills Account</div>
-            <div className="text-2xl font-bold text-slate-200">€{billsBuffer}</div>
-            <div className="text-xs text-slate-500 mt-2">kept aside for recurring bills so you never overspend it.</div>
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <div className="flex items-center justify-between gap-3">
-            <label className="text-xs text-slate-400">Investments %</label>
-            <span className="text-sm text-white">{investmentAllocation}%</span>
-          </div>
-          <input
-            type="range"
-            min={10}
-            max={20}
-            step={1}
-            value={investmentAllocation}
-            onChange={e => setInvestmentAllocation(Number(e.target.value))}
-            className="w-full mt-2"
-          />
-        </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-xs text-slate-400">Emergency contribution</label>
-            <input
-              type="number"
-              value={emergencyAllocation}
-              min={0}
-              max={15}
-              onChange={e => setEmergencyAllocation(Number(e.target.value))}
-              className="w-full glass-input rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none"
-            />
-          </div>
-          <div>
-            <label className="text-xs text-slate-400">Bills buffer</label>
-            <input
-              type="number"
-              value={billsBuffer}
-              min={0}
-              onChange={e => setBillsBuffer(Number(e.target.value))}
-              className="w-full glass-input rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none"
-            />
-          </div>
-        </div>
-
-        <div className="mt-4 text-xs text-slate-500">
-          If you never see the money in your spending account, you rarely miss it. Pay yourself first by moving cash to investments, emergency savings and a bills account on payday.
-        </div>
-      </GlassCard>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Goals */}
         <div className="lg:col-span-2">
           <h2 className="text-sm font-medium text-slate-400 mb-3">Your Goals</h2>
-          <div className="mb-3 flex items-center gap-3">
-            <label className="text-xs text-slate-400">What if I saved</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="range"
-                min={0}
-                max={500}
-                step={10}
-                value={extraMonthly}
-                onChange={e => setExtraMonthly(Number(e.target.value))}
-                className="w-56"
-              />
-              <div className="text-sm font-medium text-white">€{extraMonthly}/month</div>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {goals.map(goal => (
               <GoalCard
                 key={goal.id}
                 goal={goal}
                 onClick={() => setSelectedGoal(goal)}
-                extraMonthly={extraMonthly}
-                totalRemaining={totalRemaining}
               />
             ))}
           </div>
@@ -384,7 +326,7 @@ export function GoalsDashboard() {
             </p>
             <div className="mt-3 p-2 rounded-lg bg-slate-900/80 border border-slate-700">
               <div className="text-xs text-slate-300">
-                €{protectedAmount.toLocaleString('de-DE')} across {goals.filter(g => g.isShieldProtected).length} goals is currently shield-protected.
+                €{protectedAmount.toLocaleString('en-GB')} across {goals.filter(g => g.isShieldProtected).length} goals is currently shield-protected.
               </div>
             </div>
           </GlassCard>
@@ -435,18 +377,24 @@ export function GoalsDashboard() {
               className="w-full glass-input rounded-xl px-4 py-3 text-sm text-white outline-none"
             />
           </div>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <button
-              onClick={() => setNewGoalProtected(!newGoalProtected)}
-              className={`w-10 h-5 rounded-full transition-all duration-200 ${newGoalProtected ? 'bg-slate-700' : 'bg-slate-800/80'} relative`}
-            >
-              <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all duration-200 ${newGoalProtected ? 'left-[22px]' : 'left-0.5'}`} />
-            </button>
+          {currentMember && currentMember.role === 'admin' ? (
             <div>
-              <span className="text-sm text-white">Shield Protect this goal</span>
-              <p className="text-xs text-slate-400">Transactions that would breach this goal will be blocked</p>
+              <label className="text-xs text-slate-400 block mb-1.5">Scope</label>
+              <select
+                value={newGoalScope}
+                onChange={e => setNewGoalScope(e.target.value as 'personal' | 'family')}
+                className="w-full glass-input rounded-xl px-4 py-3 text-sm text-white outline-none bg-transparent"
+              >
+                <option value="personal">Personal</option>
+                <option value="family">Family (shared)</option>
+              </select>
             </div>
-          </label>
+          ) : (
+            <div>
+              <label className="text-xs text-slate-400 block mb-1.5">Scope</label>
+              <div className="text-sm text-slate-400">Personal</div>
+            </div>
+          )}
           <div className="flex gap-3 justify-end">
             <Button variant="ghost" onClick={() => setShowAddGoal(false)}>Cancel</Button>
             <Button variant="goals" onClick={addGoal}>Create Goal</Button>
@@ -506,10 +454,10 @@ export function GoalsDashboard() {
 
             <div className="text-center">
               <div className="text-lg font-bold text-white">
-                €{selectedGoal.currentAmount.toLocaleString('de-DE')} / €{selectedGoal.targetAmount.toLocaleString('de-DE')}
+                €{selectedGoal.currentAmount.toLocaleString('en-GB')} / €{selectedGoal.targetAmount.toLocaleString('en-GB')}
               </div>
               <div className="text-sm text-slate-400">
-                €{(selectedGoal.targetAmount - selectedGoal.currentAmount).toLocaleString('de-DE')} remaining
+                €{(selectedGoal.targetAmount - selectedGoal.currentAmount).toLocaleString('en-GB')} remaining
               </div>
             </div>
 
